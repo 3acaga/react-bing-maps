@@ -13,7 +13,7 @@ const BingMap: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ height: 600 }}>
       <ReactBingMap apiKey="YOUR_API_KEY_HERE">
         <Pushpin location={start} />
 
