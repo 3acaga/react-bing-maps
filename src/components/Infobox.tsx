@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from "react";
 
 import { MapContext } from "../ReactBingMap";
-import { HandlerDescriptor, InfoboxEventHandler, LatLng } from "../types";
+import { HandlerDescriptor, InfoboxEventHandler, LatLng } from "../index";
 
 interface OwnProps {
   location: LatLng;

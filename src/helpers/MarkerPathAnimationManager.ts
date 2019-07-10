@@ -1,4 +1,4 @@
-import { EntityDescriptor } from "../types";
+import { EntityDescriptor } from "../index";
 
 class MarkerPathAnimationManager {
   private isRunning = false;

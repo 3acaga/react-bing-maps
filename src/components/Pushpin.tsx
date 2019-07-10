@@ -3,7 +3,7 @@ import React, { useContext, useEffect } from "react";
 import { MapContext } from "../ReactBingMap";
 
 import { LayerContext } from "./Layer";
-import { HandlerDescriptor, LatLng, PushpinEventHandler } from "../types";
+import { HandlerDescriptor, LatLng, PushpinEventHandler } from "../index";
 
 interface OwnProps {
   location: LatLng;

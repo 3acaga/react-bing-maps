@@ -3,7 +3,7 @@ import React, { useContext, useEffect } from "react";
 import { MapContext } from "../ReactBingMap";
 import { LayerContext } from "./Layer";
 import { generateCurvePoints } from "../helpers/generateCurvePoints";
-import { EntityDescriptor, LatLng } from "../types";
+import { EntityDescriptor, LatLng } from "../index";
 
 interface OwnProps {
   path: LatLng[];

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useMemo } from "react";
 
 import { MapContext } from "../ReactBingMap";
 import MarkerPathAnimationManager from "../helpers/MarkerPathAnimationManager";
-import { EntityDescriptor } from "../types";
+import { EntityDescriptor } from "../index";
 
 interface OwnProps {
   id?: string;

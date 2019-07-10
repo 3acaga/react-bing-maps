@@ -1,9 +1,9 @@
 {
-  "name": "react-bing-maps",
-  "version": "0.0.0-alpha.1",
+  "name": "@3acaga/react-bing-maps",
+  "version": "0.0.0-alpha.2",
   "description": "React binding try for bing-maps",
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
+  "types": "dist/index.d.ts",
   "author": "https://github.com/3acaga",
   "license": "MIT",
   "repository": {
@@ -16,8 +16,7 @@
     "d3": "^5.9.7"
   },
   "files": [
-    "dist/**/*",
-    "types/**/*"
+    "dist/**/*"
   ],
   "devDependencies": {
     "@types/d3": "^5.7.2",

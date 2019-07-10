@@ -1,15 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ViewController from "./ViewController";
-
-interface Point {
-  latitude: number;
-  longitude: number;
-}
+import { LatLng } from "./index";
 
 interface OwnProps {
   apiKey: string;
   onMapInit?: (map: Microsoft.Maps.Map) => void;
-  center?: Point;
+  center?: LatLng;
   onClick?: React.MouseEventHandler;
   onViewChange?: (e: any, map: Microsoft.Maps.Map) => void;
   children?: React.ReactNode;

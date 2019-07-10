@@ -2,7 +2,7 @@ import { create } from "d3-selection";
 import { curveCatmullRom, line } from "d3-shape";
 import { range } from "d3-array";
 
-import { LatLng } from "../types";
+import { LatLng } from "../index";
 
 export function generateCurvePoints(curvePoints: LatLng[]) {
   const _svg = create("svg");

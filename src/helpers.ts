@@ -1,11 +1,8 @@
+import { LatLng } from "./index";
+
 const easeCubic = function(t: number, _in: boolean = false) {
   return _in ? t * t * t : --t * t * t + 1;
 };
-
-interface LatLng {
-  latitude: number;
-  longitude: number;
-}
 
 // Build Curve
 interface BuildCurvePath {
