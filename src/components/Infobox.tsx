@@ -13,9 +13,10 @@ interface OwnProps {
   onUnmount?: () => void;
 }
 
-const Infobox: React.FC<
-  OwnProps & Omit<Microsoft.Maps.IInfoboxOptions, keyof OwnProps>
-> = ({
+type InfoboxProps = OwnProps &
+  Omit<Microsoft.Maps.IInfoboxOptions, keyof OwnProps>;
+
+const Infobox: React.FC<InfoboxProps> = ({
   location: { latitude, longitude },
   onClick,
   onInfoboxChanged,
@@ -60,3 +61,4 @@ const Infobox: React.FC<
 };
 
 export default React.memo(Infobox);
+export { InfoboxProps };

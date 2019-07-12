@@ -22,7 +22,13 @@ export const LayerContext = React.createContext<LayerContextType>({
   entities: []
 });
 
-const Layer: React.FC<OwnProps> = ({ id, animationDuration = 0, children }) => {
+type LayerProps = OwnProps;
+
+const Layer: React.FC<LayerProps> = ({
+  id,
+  animationDuration = 0,
+  children
+}) => {
   const map = useContext(MapContext);
   const context: LayerContextType = useMemo(
     () => ({
@@ -57,3 +63,4 @@ const Layer: React.FC<OwnProps> = ({ id, animationDuration = 0, children }) => {
 };
 
 export default React.memo(Layer);
+export { LayerProps };

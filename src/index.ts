@@ -3,6 +3,11 @@ export interface LatLng {
   longitude: number;
 }
 
+export interface Point {
+  x: number;
+  y: number;
+}
+
 export interface EntityDescriptor {
   type: string;
   length: number;
@@ -37,11 +42,23 @@ export interface HandlerDescriptor<T = any> {
   handler: T;
 }
 
-import ReactBingMap from "./ReactBingMap";
-import Pushpin from "./components/Pushpin";
-import Polyline from "./components/Polyline";
-import Layer from "./components/Layer";
-import Infobox from "./components/Infobox";
+import ReactBingMap, { ReactBingMapProps } from "./ReactBingMap";
+import Pushpin, { PushpinProps } from "./components/Pushpin";
+import Polyline, { PolylineProps } from "./components/Polyline";
+import Layer, { LayerProps } from "./components/Layer";
+import Infobox, { InfoboxProps } from "./components/Infobox";
 
-export { ReactBingMap, Pushpin, Polyline, Layer, Infobox };
+export {
+  ReactBingMap,
+  ReactBingMapProps,
+  Pushpin,
+  PushpinProps,
+  Polyline,
+  PolylineProps,
+  Layer,
+  LayerProps,
+  Infobox,
+  InfoboxProps
+};
+
 export default ReactBingMap;

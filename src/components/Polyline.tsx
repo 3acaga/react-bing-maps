@@ -13,7 +13,8 @@ interface OwnProps {
   movingMarkerConfig?: Microsoft.Maps.IPushpinOptions;
 }
 
-const Polyline: React.FC<OwnProps & Microsoft.Maps.IPolylineOptions> = ({
+type PolylineProps = OwnProps & Microsoft.Maps.IPolylineOptions;
+const Polyline: React.FC<PolylineProps> = ({
   level = 0,
   path,
   withMovingMarker,
@@ -103,3 +104,4 @@ const Polyline: React.FC<OwnProps & Microsoft.Maps.IPolylineOptions> = ({
 };
 
 export default React.memo(Polyline);
+export { PolylineProps };

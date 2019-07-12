@@ -15,9 +15,10 @@ export const MapContext = React.createContext<Microsoft.Maps.Map>(
   (null as unknown) as Microsoft.Maps.Map
 );
 
-const ReactBingMap: React.FC<
-  Omit<Microsoft.Maps.IMapLoadOptions, keyof OwnProps> & OwnProps
-> = ({
+type ReactBingMapProps = Omit<Microsoft.Maps.IMapLoadOptions, keyof OwnProps> &
+  OwnProps;
+
+const ReactBingMap: React.FC<ReactBingMapProps> = ({
   apiKey,
   onMapInit,
   center: { latitude, longitude } = { latitude: 31, longitude: 52 },
@@ -95,3 +96,4 @@ const ReactBingMap: React.FC<
 };
 
 export default React.memo(ReactBingMap);
+export { ReactBingMapProps };

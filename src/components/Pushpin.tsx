@@ -3,10 +3,17 @@ import React, { useContext, useEffect } from "react";
 import { MapContext } from "../ReactBingMap";
 
 import { LayerContext } from "./Layer";
-import { HandlerDescriptor, LatLng, PushpinEventHandler } from "../index";
+import {
+  HandlerDescriptor,
+  LatLng,
+  Point,
+  PushpinEventHandler
+} from "../index";
 
 interface OwnProps {
   location: LatLng;
+  anchor?: Point;
+  textOffset?: Point;
   onClick?: PushpinEventHandler;
   onMouseDown?: PushpinEventHandler;
   onMouseUp?: PushpinEventHandler;
@@ -14,8 +21,11 @@ interface OwnProps {
   onMouseOut?: PushpinEventHandler;
 }
 
-const Pushpin: React.FC<OwnProps & Microsoft.Maps.IPushpinOptions> = ({
+type PushpinProps = OwnProps & Microsoft.Maps.IPushpinOptions;
+const Pushpin: React.FC<PushpinProps> = ({
   location: { latitude, longitude },
+  anchor,
+  textOffset,
   onClick,
   onMouseDown,
   onMouseUp,
@@ -28,7 +38,15 @@ const Pushpin: React.FC<OwnProps & Microsoft.Maps.IPushpinOptions> = ({
 
   useEffect(() => {
     const _loc = new window.Microsoft.Maps.Location(latitude, longitude);
-    const pin = new window.Microsoft.Maps.Pushpin(_loc, options);
+    const pin = new window.Microsoft.Maps.Pushpin(_loc, {
+      anchor: anchor
+        ? new window.Microsoft.Maps.Point(anchor.x, anchor.y)
+        : undefined,
+      textOffset: textOffset
+        ? new window.Microsoft.Maps.Point(textOffset.x, textOffset.y)
+        : undefined,
+      ...options
+    });
 
     // Add handlers to pushpin
     const handlers = [
@@ -67,3 +85,4 @@ const Pushpin: React.FC<OwnProps & Microsoft.Maps.IPushpinOptions> = ({
 };
 
 export default React.memo(Pushpin);
+export { PushpinProps };
