@@ -13,8 +13,8 @@ interface OwnProps {
   onUnmount?: () => void;
 }
 
-type InfoboxProps = OwnProps &
-  Omit<Microsoft.Maps.IInfoboxOptions, keyof OwnProps>;
+type InfoboxProps = Omit<Microsoft.Maps.IInfoboxOptions, keyof OwnProps> &
+  OwnProps;
 
 const Infobox: React.FC<InfoboxProps> = ({
   location: { latitude, longitude },

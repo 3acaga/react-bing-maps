@@ -21,7 +21,8 @@ interface OwnProps {
   onMouseOut?: PushpinEventHandler;
 }
 
-type PushpinProps = OwnProps & Microsoft.Maps.IPushpinOptions;
+type PushpinProps = Omit<Microsoft.Maps.IPushpinOptions, keyof OwnProps> &
+  OwnProps;
 const Pushpin: React.FC<PushpinProps> = ({
   location: { latitude, longitude },
   anchor,
