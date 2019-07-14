@@ -2,13 +2,14 @@ import React, { useContext, useEffect } from "react";
 
 import { MapContext } from "../ReactBingMap";
 import { LayerContext } from "./Layer";
-import { generateCurvePoints } from "../helpers/generateCurvePoints";
+import { generatePathPoints } from "../helpers/generatePathPoints";
 import { EntityDescriptor, LatLng } from "../index";
 
 interface OwnProps {
   path: LatLng[];
 
   withMovingMarker?: boolean;
+  curved?: boolean;
   level?: number;
   movingMarkerConfig?: Microsoft.Maps.IPushpinOptions;
 }
@@ -16,6 +17,7 @@ interface OwnProps {
 type PolylineProps = Omit<Microsoft.Maps.IPolylineOptions, keyof OwnProps> &
   OwnProps;
 const Polyline: React.FC<PolylineProps> = ({
+  curved = false,
   level = 0,
   path,
   withMovingMarker,
@@ -26,7 +28,9 @@ const Polyline: React.FC<PolylineProps> = ({
   const { layer, entities } = useContext(LayerContext);
 
   useEffect(() => {
-    const points = generateCurvePoints(path);
+    // TODO use spatial math cardinal curve
+    // https://www.bing.com/api/maps/sdkrelease/mapcontrol/isdk/getcardinalspline#TS
+    const points = generatePathPoints(path, curved);
 
     const { path: linePath, length: lineLength } = points;
 
