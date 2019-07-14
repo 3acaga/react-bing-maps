@@ -70,7 +70,10 @@ const Pushpin: React.FC<PushpinProps> = ({
     if (layer) {
       layer.add(pin);
     } else {
-      map.entities.push(pin);
+      try {
+        // wtf is happening on late mount?
+        map.entities.push(pin);
+      } catch {}
     }
     return () => {
       // Remove the pushpin from the layer/map

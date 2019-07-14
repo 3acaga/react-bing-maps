@@ -86,7 +86,10 @@ const Polyline: React.FC<PolylineProps> = ({
         entities.push(entityDescriptor);
       }
     } else {
-      map.entities.push(polyline);
+      try {
+        // wtf is happening on late mount?
+        map.entities.push(polyline);
+      } catch {}
     }
 
     return () => {
