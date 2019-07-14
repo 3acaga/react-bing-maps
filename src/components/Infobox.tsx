@@ -46,12 +46,16 @@ const Infobox: React.FC<InfoboxProps> = ({
     // ONLY AFTER .setMap()
     // Add handlers to pushpin
     handlers.forEach(({ eventName, handler }) => {
-      window.Microsoft.Maps.Events.addHandler(infobox, eventName, (e: any) => {
-        handler(e, map);
-      });
+      window.Microsoft.Maps.Events.addHandler(
+        infobox,
+        eventName,
+        (e: Microsoft.Maps.IInfoboxEventArgs) => {
+          handler(e, map);
+        }
+      );
     });
 
-    onMount && setTimeout(onMount, 1000);
+    onMount && map.awaitInit.then(onMount);
     return () => {
       onUnmount && onUnmount();
     };

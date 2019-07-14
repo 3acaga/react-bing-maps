@@ -1,11 +1,20 @@
 {
   "name": "@3acaga/react-bing-maps",
-  "version": "0.0.0-alpha.5",
+  "version": "0.0.0-alpha.6",
   "description": "React binding try for bing-maps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "https://github.com/3acaga",
   "license": "MIT",
+  "keywords": [
+    "Microsoft",
+    "Bingmaps",
+    "React",
+    "Bing",
+    "Maps",
+    "V8 Web Control",
+    "typescript"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/3acaga/react-bing-maps"

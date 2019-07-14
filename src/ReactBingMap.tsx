@@ -7,12 +7,16 @@ interface OwnProps {
   onMapInit?: (map: Microsoft.Maps.Map) => void;
   center?: LatLng;
   onClick?: React.MouseEventHandler;
-  onViewChange?: (e: any, map: Microsoft.Maps.Map) => void;
+  onViewChange?: (e: unknown, map: Microsoft.Maps.Map) => void;
   children?: React.ReactNode;
 }
 
-export const MapContext = React.createContext<Microsoft.Maps.Map>(
-  (null as unknown) as Microsoft.Maps.Map
+interface MapContext extends Microsoft.Maps.Map {
+  awaitInit: Promise<unknown>;
+}
+
+export const MapContext = React.createContext<MapContext>(
+  (null as unknown) as MapContext
 );
 
 type ReactBingMapProps = Omit<Microsoft.Maps.IMapLoadOptions, keyof OwnProps> &
@@ -27,9 +31,7 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
   children,
   ...props
 }) => {
-  const [map, setMap] = useState<Microsoft.Maps.Map>(
-    (null as unknown) as Microsoft.Maps.Map
-  );
+  const [map, setMap] = useState<MapContext>((null as unknown) as MapContext);
 
   const centerLoc = useMemo(
     () => map && new window.Microsoft.Maps.Location(latitude, longitude),
@@ -43,29 +45,34 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
     };
 
     const init = function() {
-      const map = new window.Microsoft.Maps.Map("#react-bing-maps", options);
+      const map = new window.Microsoft.Maps.Map(
+        "#react-bing-maps",
+        options
+      ) as MapContext;
 
       onClick && window.Microsoft.Maps.Events.addHandler(map, "click", onClick);
       onViewChange &&
         window.Microsoft.Maps.Events.addThrottledHandler(
           map,
           "viewchange",
-          (e: any) => {
+          (e: unknown) => {
             onViewChange(e, map);
           },
           150
         );
-      setMap(map);
 
-      ////////////////////////////////////////////////////////////////////////////////////////////
-      //////////////////////////   removes map rotation on mobile   //////////////////////////////
-      ////////////////////////////////////////////////////////////////////////////////////////////
-      (map as any)._mapLoaded._handlers.push(() => {
+      map.awaitInit = new Promise((resolve) => {
         ////////////////////////////////////////////////////////////////////////////////////////////
+        (map as any)._mapLoaded._handlers.push(() => {
+          setTimeout(() => {
+            onMapInit && onMapInit(map);
+            resolve();
+          }, 0);
+        });
         ////////////////////////////////////////////////////////////////////////////////////////////
-
-        onMapInit && onMapInit(map);
       });
+
+      setMap(map as MapContext);
     };
 
     if (!window.Microsoft) {
