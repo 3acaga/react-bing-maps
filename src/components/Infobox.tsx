@@ -57,6 +57,9 @@ const Infobox: React.FC<InfoboxProps> = ({
 
     onMount && map.awaitInit.then(onMount);
     return () => {
+      infobox.setMap((null as unknown) as Microsoft.Maps.Map);
+      // TODO memory leak
+      //       infobox.dispose();
       onUnmount && onUnmount();
     };
   }, []);
