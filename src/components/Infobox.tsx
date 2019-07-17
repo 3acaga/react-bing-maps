@@ -76,13 +76,25 @@ const Infobox: React.FC<InfoboxProps> = ({
         const ci = node && node.closest(".InfoboxCustom");
         const wrapper = ci && ci.parentElement;
 
+        const dummy = function() {};
+        const sp = (e: Event) => {
+          e.stopPropagation();
+        };
+
         wrapper &&
           Object.entries(wrapper).forEach(([key, value]) => {
             if (key.startsWith("jsEvent")) {
-              wrapper.removeEventListener(
-                key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1"),
-                value
-              );
+              const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+              wrapper.removeEventListener(event, value);
+
+              wrapper.addEventListener(event, (e) => {
+                const stopPropagation = e.stopPropagation;
+                e.stopPropagation = dummy;
+                value(e);
+                e.stopPropagation = stopPropagation;
+              });
+
+              wrapper.parentElement!.addEventListener(event, sp);
             }
           });
 
