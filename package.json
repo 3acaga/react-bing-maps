@@ -1,6 +1,6 @@
 {
   "name": "@3acaga/react-bing-maps",
-  "version": "0.0.0-alpha.7",
+  "version": "0.0.0-alpha.8",
   "description": "React binding try for bing-maps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

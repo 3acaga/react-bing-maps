@@ -38,10 +38,12 @@ const Infobox: React.FC<InfoboxProps> = ({
 
   useEffect(() => {
     const _loc = new window.Microsoft.Maps.Location(latitude, longitude);
+    const customContent =
+      children || (!options.actions && !options.description);
 
     const infobox = new window.Microsoft.Maps.Infobox(_loc, {
       ...options,
-      htmlContent: children ? `<div id="${id}"></div>` : undefined
+      htmlContent: customContent ? `<div id="${id}"></div>` : undefined
     });
 
     const handlers = [
@@ -69,7 +71,7 @@ const Infobox: React.FC<InfoboxProps> = ({
     map.awaitInit.then(() => {
       let node;
 
-      if (children) {
+      if (customContent) {
         node = document.getElementById(id);
         const ci = node && node.closest(".InfoboxCustom");
         const wrapper = ci && ci.parentElement;
@@ -90,6 +92,7 @@ const Infobox: React.FC<InfoboxProps> = ({
 
       onMount && onMount(node || undefined);
     });
+
     return () => {
       onUnmount && onUnmount();
     };
