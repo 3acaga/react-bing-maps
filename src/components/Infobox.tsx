@@ -1,4 +1,6 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
+import uuid from "uuid";
 
 import { MapContext } from "../ReactBingMap";
 import { HandlerDescriptor, InfoboxEventHandler, LatLng } from "../index";
@@ -9,11 +11,15 @@ interface OwnProps {
   onInfoboxChanged?: InfoboxEventHandler;
   onMouseEnter?: InfoboxEventHandler;
   onMouseLeave?: InfoboxEventHandler;
-  onMount?: () => void;
+  onMount?: (node?: HTMLElement) => void;
   onUnmount?: () => void;
+  children?: React.ReactNode;
 }
 
-type InfoboxProps = Omit<Microsoft.Maps.IInfoboxOptions, keyof OwnProps> &
+type InfoboxProps = Omit<
+  Microsoft.Maps.IInfoboxOptions,
+  keyof OwnProps | "htmlContent"
+> &
   OwnProps;
 
 const Infobox: React.FC<InfoboxProps> = ({
@@ -24,13 +30,19 @@ const Infobox: React.FC<InfoboxProps> = ({
   onMouseLeave,
   onMount,
   onUnmount,
+  children,
   ...options
 }) => {
   const map = useContext(MapContext);
+  const { current: id } = useRef(uuid());
 
   useEffect(() => {
     const _loc = new window.Microsoft.Maps.Location(latitude, longitude);
-    const infobox = new window.Microsoft.Maps.Infobox(_loc, options);
+
+    const infobox = new window.Microsoft.Maps.Infobox(_loc, {
+      ...options,
+      htmlContent: children ? `<div id="${id}"></div>` : undefined
+    });
 
     const handlers = [
       { eventName: "click", handler: onClick },
@@ -43,8 +55,7 @@ const Infobox: React.FC<InfoboxProps> = ({
 
     infobox.setMap(map);
 
-    // ONLY AFTER .setMap()
-    // Add handlers to pushpin
+    // Add handlers to pushpin ONLY AFTER .setMap()
     handlers.forEach(({ eventName, handler }) => {
       window.Microsoft.Maps.Events.addHandler(
         infobox,
@@ -55,7 +66,30 @@ const Infobox: React.FC<InfoboxProps> = ({
       );
     });
 
-    onMount && map.awaitInit.then(onMount);
+    map.awaitInit.then(() => {
+      let node;
+
+      if (children) {
+        node = document.getElementById(id);
+        const ci = node && node.closest(".InfoboxCustom");
+        const wrapper = ci && ci.parentElement;
+
+        wrapper &&
+          Object.entries(wrapper).forEach(([key, value]) => {
+            if (key.startsWith("jsEvent")) {
+              wrapper.removeEventListener(
+                key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1"),
+                value
+              );
+            }
+          });
+
+        node &&
+          ReactDOM.render(<React.Fragment>{children}</React.Fragment>, node);
+      }
+
+      onMount && onMount(node || undefined);
+    });
     return () => {
       onUnmount && onUnmount();
     };
