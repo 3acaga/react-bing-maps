@@ -69,32 +69,72 @@ const Infobox: React.FC<InfoboxProps> = ({
     });
 
     map.awaitInit.then(() => {
-      let node;
+      let node: HTMLElement | null;
 
       if (customContent) {
         node = document.getElementById(id);
         const ci = node && node.closest(".InfoboxCustom");
         const wrapper = ci && ci.parentElement;
 
-        const dummy = function() {};
-        const sp = (e: Event) => {
-          e.stopPropagation();
+        const dummy = function(this: Event) {
+          // if (this.type === "click") {
+          //   console.log();
+          // }
         };
 
         wrapper &&
           Object.entries(wrapper).forEach(([key, value]) => {
+            // TODO TUPA PANIKA
             if (key.startsWith("jsEvent")) {
               const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+
+              if (event === "click") {
+                console.log();
+              }
+
               wrapper.removeEventListener(event, value);
+              // wrapper.parentElement!.addEventListener(event, (e) => {
+              //   delete e.stopPropagation;
+              //
+              //   e.stopPropagation();
+              // });
 
               wrapper.addEventListener(event, (e) => {
-                const stopPropagation = e.stopPropagation;
                 e.stopPropagation = dummy;
-                value(e);
-                e.stopPropagation = stopPropagation;
               });
 
-              wrapper.parentElement!.addEventListener(event, sp);
+              wrapper.addEventListener(event, value);
+
+              wrapper.addEventListener(event, (e) => {
+                delete e.stopPropagation;
+              });
+
+              node!.addEventListener(
+                event,
+                (e) => {
+                  e.stopPropagation();
+                  // e.stopPropagation = dummy;
+                },
+                false
+              );
+
+              // wrapper.addEventListener(
+              //   event,
+              //   (e) => {
+              //     e.preventDefault();
+              //   },
+              //   false
+              // );
+
+              // wrapper.parentElement!.parentElement!.addEventListener(
+              //   event,
+              //   (e) => {
+              // console.log(e);
+              // delete e.stopPropagation;
+              // e.stopPropagation();
+              // e.preventDefault();
+              // }
+              // );
             }
           });
 
