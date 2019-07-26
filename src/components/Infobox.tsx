@@ -22,6 +22,8 @@ type InfoboxProps = Omit<
 > &
   OwnProps;
 
+const dummy = function(this: Event) {};
+
 const Infobox: React.FC<InfoboxProps> = ({
   location: { latitude, longitude },
   onClick,
@@ -69,44 +71,42 @@ const Infobox: React.FC<InfoboxProps> = ({
     });
 
     map.awaitInit.then(() => {
-      let node;
+      let node: HTMLElement | null;
 
       if (customContent) {
         node = document.getElementById(id);
         const ci = node && node.closest(".InfoboxCustom");
         const wrapper = ci && ci.parentElement;
 
-        const dummy = function() {};
-        const sp = (e: Event) => {
-          e.stopPropagation();
-        };
+        node && ReactDOM.render(<>{children}</>, node);
 
-        wrapper &&
+        if (wrapper) {
           Object.entries(wrapper).forEach(([key, value]) => {
-            if (key.startsWith("jsEvent")) {
+            if (key.match("jsEvent")) {
               const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+
+              // wrapper = div z-index: 1002 - destructive handlers
               wrapper.removeEventListener(event, value);
-
-              wrapper.addEventListener(event, (e) => {
-                const stopPropagation = e.stopPropagation;
-                e.stopPropagation = dummy;
-                value(e);
-                e.stopPropagation = stopPropagation;
-              });
-
-              wrapper.parentElement!.addEventListener(event, sp);
+              wrapper.addEventListener(
+                event,
+                (e: Event & { _IGNORE?: boolean }) => {
+                  e.stopPropagation = dummy;
+                  value(e);
+                  delete e.stopPropagation;
+                  e._IGNORE = true;
+                }
+              );
             }
           });
-
-        node &&
-          ReactDOM.render(<React.Fragment>{children}</React.Fragment>, node);
+        }
       }
 
-      onMount && onMount(node || undefined);
+      onMount && onMount(node! || undefined);
     });
 
     return () => {
       onUnmount && onUnmount();
+      infobox.setMap((null as unknown) as Microsoft.Maps.Map);
     };
   }, []);
 

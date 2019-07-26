@@ -65,8 +65,29 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
         ////////////////////////////////////////////////////////////////////////////////////////////
         (map as any)._mapLoaded._handlers.push(() => {
           setTimeout(() => {
-            onMapInit && onMapInit(map);
+            const mapDiv = document.querySelector(
+              "#react-bing-maps > .MicrosoftMap"
+            )!;
+
+            Object.entries(mapDiv).forEach(([key, value]) => {
+              if (key.startsWith("jsEvent")) {
+                const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+
+                mapDiv.removeEventListener(event, value);
+                mapDiv.addEventListener(
+                  event,
+                  (e: Event & { _IGNORE?: boolean }) => {
+                    if (!e._IGNORE) {
+                      value(e);
+                    }
+                  }
+                );
+              }
+            });
+
             resolve();
+            // when everything ready
+            onMapInit && onMapInit(map);
           }, 0);
         });
         ////////////////////////////////////////////////////////////////////////////////////////////
