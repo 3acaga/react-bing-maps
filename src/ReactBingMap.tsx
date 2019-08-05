@@ -45,55 +45,61 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
     };
 
     const init = function() {
-      const map = new window.Microsoft.Maps.Map(
-        "#react-bing-maps",
-        options
-      ) as MapContext;
+      try {
+        const map = new window.Microsoft.Maps.Map(
+          "#react-bing-maps",
+          options
+        ) as MapContext;
 
-      onClick && window.Microsoft.Maps.Events.addHandler(map, "click", onClick);
-      onViewChange &&
-        window.Microsoft.Maps.Events.addThrottledHandler(
-          map,
-          "viewchange",
-          (e: unknown) => {
-            onViewChange(e, map);
-          },
-          150
-        );
+        onClick &&
+          window.Microsoft.Maps.Events.addHandler(map, "click", onClick);
+        onViewChange &&
+          window.Microsoft.Maps.Events.addThrottledHandler(
+            map,
+            "viewchange",
+            (e: unknown) => {
+              onViewChange(e, map);
+            },
+            150
+          );
 
-      map.awaitInit = new Promise((resolve) => {
-        ////////////////////////////////////////////////////////////////////////////////////////////
-        (map as any)._mapLoaded._handlers.push(() => {
-          setTimeout(() => {
-            const mapDiv = document.querySelector(
-              "#react-bing-maps > .MicrosoftMap"
-            )!;
+        map.awaitInit = new Promise((resolve) => {
+          ////////////////////////////////////////////////////////////////////////////////////////////
+          (map as any)._mapLoaded._handlers.push(() => {
+            setTimeout(() => {
+              const mapDiv = document.querySelector(
+                "#react-bing-maps > .MicrosoftMap"
+              )!;
 
-            Object.entries(mapDiv).forEach(([key, value]) => {
-              if (key.startsWith("jsEvent")) {
-                const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+              mapDiv &&
+                Object.entries(mapDiv).forEach(([key, value]) => {
+                  if (key.startsWith("jsEvent")) {
+                    const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
 
-                mapDiv.removeEventListener(event, value);
-                mapDiv.addEventListener(
-                  event,
-                  (e: Event & { _IGNORE?: boolean }) => {
-                    if (!e._IGNORE) {
-                      value(e);
-                    }
+                    mapDiv.removeEventListener(event, value);
+                    mapDiv.addEventListener(
+                      event,
+                      (e: Event & { _IGNORE?: boolean }) => {
+                        if (!e._IGNORE) {
+                          value(e);
+                        }
+                      }
+                    );
                   }
-                );
-              }
-            });
+                });
 
-            resolve();
-            // when everything ready
-            onMapInit && onMapInit(map);
-          }, 0);
+              resolve();
+              // when everything ready
+              onMapInit && onMapInit(map);
+            }, 0);
+          });
+          ////////////////////////////////////////////////////////////////////////////////////////////
         });
-        ////////////////////////////////////////////////////////////////////////////////////////////
-      });
 
-      setMap(map as MapContext);
+        setMap(map as MapContext);
+      } catch (e) {
+        // prevent crash when map is being unmounted before fully initialized
+      }
     };
 
     if (!window.Microsoft) {
@@ -108,6 +114,8 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
     } else {
       init();
     }
+
+    return () => {};
   }, []);
 
   return (
