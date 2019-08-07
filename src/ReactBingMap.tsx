@@ -1,22 +1,48 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
 import ViewController from "./ViewController";
+import addHandlers from "./helpers/addHandlers";
 import { LatLng } from "./index";
 
 interface OwnProps {
   apiKey: string;
-  onMapInit?: (map: Microsoft.Maps.Map) => void;
   center?: LatLng;
-  onClick?: React.MouseEventHandler;
+
+  onMapInit?: (map: Microsoft.Maps.Map) => void;
+  onViewChangeStart?: (e: unknown, map: Microsoft.Maps.Map) => void;
   onViewChange?: (e: unknown, map: Microsoft.Maps.Map) => void;
+  onViewChangeEnd?: (e: unknown, map: Microsoft.Maps.Map) => void;
+  onClick?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onDoubleClick?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onRightClick?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onMouseDown?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onMouseOut?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onMouseOver?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onMouseUp?: (e: React.MouseEvent, map: Microsoft.Maps.Map) => void;
+  onWheel?: (e: React.WheelEvent, map: Microsoft.Maps.Map) => void;
+  onMapTypeChanged?: (e: unknown, map: Microsoft.Maps.Map) => void;
+  onViewChangeStartThrottleMs?: number;
+  onViewChangeThrottleMs?: number;
+  onViewChangeEndThrottleMs?: number;
+  onClickThrottleMs?: number;
+  onDoubleClickThrottleMs?: number;
+  onRightClickThrottleMs?: number;
+  onMouseDownThrottleMs?: number;
+  onMouseOutThrottleMs?: number;
+  onMouseOverThrottleMs?: number;
+  onMouseUpThrottleMs?: number;
+  onWheelThrottleMs?: number;
+  onMapTypeChangedThrottleMs?: number;
+
   children?: React.ReactNode;
 }
 
-interface MapContext extends Microsoft.Maps.Map {
+interface CustomMap extends Microsoft.Maps.Map {
   awaitInit: Promise<unknown>;
 }
 
-export const MapContext = React.createContext<MapContext>(
-  (null as unknown) as MapContext
+const MapContext = React.createContext<CustomMap>(
+  (undefined as unknown) as CustomMap
 );
 
 type ReactBingMapProps = Omit<Microsoft.Maps.IMapLoadOptions, keyof OwnProps> &
@@ -26,12 +52,35 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
   apiKey,
   onMapInit,
   center: { latitude, longitude } = { latitude: 31, longitude: 52 },
-  onClick,
+  onViewChangeStart,
   onViewChange,
+  onViewChangeEnd,
+  onClick,
+  onDoubleClick,
+  onRightClick,
+  onMouseDown,
+  onMouseOut,
+  onMouseOver,
+  onMouseUp,
+  onWheel,
+  onMapTypeChanged,
   children,
+  onViewChangeStartThrottleMs,
+  onViewChangeThrottleMs,
+  onViewChangeEndThrottleMs,
+  onClickThrottleMs,
+  onDoubleClickThrottleMs,
+  onRightClickThrottleMs,
+  onMouseDownThrottleMs,
+  onMouseOutThrottleMs,
+  onMouseOverThrottleMs,
+  onMouseUpThrottleMs,
+  onWheelThrottleMs,
+  onMapTypeChangedThrottleMs,
   ...props
 }) => {
-  const [map, setMap] = useState<MapContext>((null as unknown) as MapContext);
+  const [map, setMap] = useState<CustomMap | undefined>(undefined);
+  const rootElement = useRef<HTMLDivElement>(null);
 
   const centerLoc = useMemo(
     () => map && new window.Microsoft.Maps.Location(latitude, longitude),
@@ -45,91 +94,147 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
     };
 
     const init = function() {
-      try {
-        const map = new window.Microsoft.Maps.Map(
-          "#react-bing-maps",
-          options
-        ) as MapContext;
+      const map = new window.Microsoft.Maps.Map(
+        rootElement.current as HTMLDivElement,
+        options
+      ) as CustomMap;
 
-        onClick &&
-          window.Microsoft.Maps.Events.addHandler(map, "click", onClick);
-        onViewChange &&
-          window.Microsoft.Maps.Events.addThrottledHandler(
-            map,
-            "viewchange",
-            (e: unknown) => {
-              onViewChange(e, map);
-            },
-            150
-          );
+      addHandlers({
+        target: map,
+        map,
+        handlers: [
+          {
+            eventName: "viewchangestart",
+            handler: onViewChangeStart,
+            throttleMs: onViewChangeStartThrottleMs
+          },
+          {
+            eventName: "viewchange",
+            handler: onViewChange,
+            throttleMs: onViewChangeThrottleMs
+          },
+          {
+            eventName: "viewchangeend",
+            handler: onViewChangeEnd,
+            throttleMs: onViewChangeEndThrottleMs
+          },
+          {
+            eventName: "click",
+            handler: onClick,
+            throttleMs: onClickThrottleMs
+          },
+          {
+            eventName: "dblclick",
+            handler: onDoubleClick,
+            throttleMs: onDoubleClickThrottleMs
+          },
+          {
+            eventName: "rightclick",
+            handler: onRightClick,
+            throttleMs: onRightClickThrottleMs
+          },
+          {
+            eventName: "mousedown",
+            handler: onMouseDown,
+            throttleMs: onMouseDownThrottleMs
+          },
+          {
+            eventName: "mouseout",
+            handler: onMouseOut,
+            throttleMs: onMouseOutThrottleMs
+          },
+          {
+            eventName: "mouseover",
+            handler: onMouseOver,
+            throttleMs: onMouseOverThrottleMs
+          },
+          {
+            eventName: "mouseup",
+            handler: onMouseUp,
+            throttleMs: onMouseUpThrottleMs
+          },
+          {
+            eventName: "mousewheel",
+            handler: onWheel,
+            throttleMs: onWheelThrottleMs
+          },
+          {
+            eventName: "maptypechanged",
+            handler: onMapTypeChanged,
+            throttleMs: onMapTypeChangedThrottleMs
+          }
+        ]
+      });
 
-        map.awaitInit = new Promise((resolve) => {
-          ////////////////////////////////////////////////////////////////////////////////////////////
+      map.awaitInit = new Promise((resolve, reject) => {
+        ////////////////////////////////////////////////////////////////////////////////////////////
+        setTimeout(() => {
           (map as any)._mapLoaded._handlers.push(() => {
-            setTimeout(() => {
-              const mapDiv = document.querySelector(
-                "#react-bing-maps > .MicrosoftMap"
-              )!;
+            const mapDiv = rootElement.current;
 
-              mapDiv &&
-                Object.entries(mapDiv).forEach(([key, value]) => {
-                  if (key.startsWith("jsEvent")) {
-                    const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+            if (mapDiv) {
+              Object.entries(mapDiv).forEach(([key, value]) => {
+                if (key.startsWith("jsEvent")) {
+                  const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
 
-                    mapDiv.removeEventListener(event, value);
-                    mapDiv.addEventListener(
-                      event,
-                      (e: Event & { _IGNORE?: boolean }) => {
-                        if (!e._IGNORE) {
-                          value(e);
-                        }
+                  mapDiv.removeEventListener(event, value);
+                  mapDiv.addEventListener(
+                    event,
+                    (e: Event & { _IGNORE?: boolean }) => {
+                      if (!e._IGNORE) {
+                        value(e);
                       }
-                    );
-                  }
-                });
+                    }
+                  );
+                }
+              });
 
-              resolve();
+              setMap(map);
+              resolve(map);
+              delete window.__initBingmaps__;
               // when everything ready
               onMapInit && onMapInit(map);
-            }, 0);
+            } else {
+              reject();
+            }
           });
-          ////////////////////////////////////////////////////////////////////////////////////////////
-        });
-
-        setMap(map as MapContext);
-      } catch (e) {
-        // prevent crash when map is being unmounted before fully initialized
-      }
+        }, 0);
+        ////////////////////////////////////////////////////////////////////////////////////////////
+      });
     };
 
     if (!window.Microsoft) {
-      const script = document.createElement("script");
-      script.type = "text/javascript";
-      script.async = true;
-      script.defer = true;
-      script.src = `https://www.bing.com/api/maps/mapcontrol?callback=__initBingmaps__&key=${apiKey}`;
-      window.__initBingmaps__ = init;
+      if (!window.__initBingmaps__) {
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.async = true;
+        script.defer = true;
+        script.src = `https://www.bing.com/api/maps/mapcontrol?callback=__initBingmaps__&key=${apiKey}`;
+        window.__initBingmaps__ = init;
 
-      document.body.appendChild(script);
+        document.body.appendChild(script);
+      } else {
+        window.__initBingmaps__ = init;
+      }
     } else {
       init();
     }
-
-    return () => {};
   }, []);
 
   return (
-    <MapContext.Provider value={map}>
-      <div id="react-bing-maps">
-        {map && (
+    <div id="react-bing-maps" ref={rootElement}>
+      {map && (
+        <MapContext.Provider value={map}>
           <ViewController {...props} center={centerLoc}>
             {children}
           </ViewController>
-        )}
-      </div>
-    </MapContext.Provider>
+        </MapContext.Provider>
+      )}
+    </div>
   );
 };
+
+export { MapContext };
 
 export default React.memo(ReactBingMap);
 export { ReactBingMapProps };

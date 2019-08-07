@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import { MapContext } from "./ReactBingMap";
 
-const clearQ = (q: NodeJS.Timeout[]) => {
+const clearQ = (q: ReturnType<typeof setTimeout>[]) => {
   q.forEach(clearTimeout);
   q.splice(0, q.length);
 };
@@ -9,12 +9,14 @@ const clearQ = (q: NodeJS.Timeout[]) => {
 const ViewController: React.FC<
   Microsoft.Maps.IMapLoadOptions & { children: React.ReactNode }
 > = ({
-  center = new window.Microsoft.Maps.Location(31, 52),
+  center = new window.Microsoft.Maps.Location(0, 0),
   zoom = 2,
   children
 }) => {
   const map = useContext(MapContext);
-  const { current: animationQueue } = useRef<NodeJS.Timeout[]>([]);
+  const { current: animationQueue } = useRef<ReturnType<typeof setTimeout>[]>(
+    []
+  );
   const prevZoomRef = useRef(zoom);
 
   useEffect(() => {

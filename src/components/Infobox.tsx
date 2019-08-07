@@ -3,7 +3,8 @@ import ReactDOM from "react-dom";
 import uuid from "uuid";
 
 import { MapContext } from "../ReactBingMap";
-import { HandlerDescriptor, InfoboxEventHandler, LatLng } from "../index";
+import { InfoboxEventHandler, LatLng } from "../index";
+import addHandlers from "../helpers/addHandlers";
 
 interface OwnProps {
   location: LatLng;
@@ -13,6 +14,11 @@ interface OwnProps {
   onMouseLeave?: InfoboxEventHandler;
   onMount?: (node?: HTMLElement) => void;
   onUnmount?: () => void;
+
+  onClickThrottleMs?: number;
+  onInfoboxChangedThrottleMs?: number;
+  onMouseEnterThrottleMs?: number;
+  onMouseLeaveThrottleMs?: number;
   children?: React.ReactNode;
 }
 
@@ -32,6 +38,10 @@ const Infobox: React.FC<InfoboxProps> = ({
   onMouseLeave,
   onMount,
   onUnmount,
+  onClickThrottleMs,
+  onInfoboxChangedThrottleMs,
+  onMouseEnterThrottleMs,
+  onMouseLeaveThrottleMs,
   children,
   ...options
 }) => {
@@ -48,26 +58,30 @@ const Infobox: React.FC<InfoboxProps> = ({
       htmlContent: customContent ? `<div id="${id}"></div>` : undefined
     });
 
-    const handlers = [
-      { eventName: "click", handler: onClick },
-      { eventName: "infoboxChanged", handler: onInfoboxChanged },
-      { eventName: "mouseenter", handler: onMouseEnter },
-      { eventName: "mouseleave", handler: onMouseLeave }
-    ].filter(({ handler }) => !!handler) as HandlerDescriptor<
-      InfoboxEventHandler
-    >[];
-
     infobox.setMap(map);
 
     // Add handlers to pushpin ONLY AFTER .setMap()
-    handlers.forEach(({ eventName, handler }) => {
-      window.Microsoft.Maps.Events.addHandler(
-        infobox,
-        eventName,
-        (e: Microsoft.Maps.IInfoboxEventArgs) => {
-          handler(e, map);
+    addHandlers({
+      target: infobox,
+      map,
+      handlers: [
+        { eventName: "click", handler: onClick, throttleMs: onClickThrottleMs },
+        {
+          eventName: "infoboxChanged",
+          handler: onInfoboxChanged,
+          throttleMs: onInfoboxChangedThrottleMs
+        },
+        {
+          eventName: "mouseenter",
+          handler: onMouseEnter,
+          throttleMs: onMouseEnterThrottleMs
+        },
+        {
+          eventName: "mouseleave",
+          handler: onMouseLeave,
+          throttleMs: onMouseLeaveThrottleMs
         }
-      );
+      ]
     });
 
     map.awaitInit.then(() => {
@@ -101,7 +115,7 @@ const Infobox: React.FC<InfoboxProps> = ({
         }
       }
 
-      onMount && onMount(node! || undefined);
+      onMount && onMount(node!);
     });
 
     return () => {

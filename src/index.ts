@@ -15,6 +15,9 @@ export interface EntityDescriptor {
   startAnimation: (duration: number) => Promise<unknown>;
 }
 
+// TODO type it
+export type LayerEventHandler = (e: unknown, map: Microsoft.Maps.Map) => void;
+
 export type PushpinEventHandler = (
   e:
     | Microsoft.Maps.IMouseEventArgs
@@ -40,6 +43,7 @@ export type MapEventHandler = (
 export interface HandlerDescriptor<T = any> {
   eventName: string;
   handler: T;
+  throttleMs?: number;
 }
 
 import ReactBingMap, { ReactBingMapProps } from "./ReactBingMap";
