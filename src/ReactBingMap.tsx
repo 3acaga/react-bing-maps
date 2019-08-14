@@ -170,7 +170,7 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
         ////////////////////////////////////////////////////////////////////////////////////////////
         setTimeout(() => {
           (map as any)._mapLoaded._handlers.push(() => {
-            const mapDiv = rootElement.current;
+            const mapDiv = rootElement.current!.querySelector(".MicrosoftMap");
 
             if (mapDiv) {
               Object.entries(mapDiv).forEach(([key, value]) => {
