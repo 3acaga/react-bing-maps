@@ -5,7 +5,8 @@ type EventTarget =
   | Microsoft.Maps.Pushpin
   | Microsoft.Maps.Polyline
   | Microsoft.Maps.Infobox
-  | Microsoft.Maps.Layer;
+  | Microsoft.Maps.Layer
+  | Microsoft.Maps.ClusterLayer;
 
 const addHandlers = ({
   target,

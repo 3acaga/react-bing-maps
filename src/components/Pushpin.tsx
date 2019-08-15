@@ -3,7 +3,8 @@ import React, { useContext, useEffect } from "react";
 import { MapContext } from "../ReactBingMap";
 import addHandlers from "../helpers/addHandlers";
 
-import { LayerContext } from "./Layer";
+import { LayerContext, SimpleLayerContextType } from "./Layer";
+import { ClusterLayerContextType } from "./ClusterLayer";
 import { LatLng, Point, PushpinEventHandler } from "../index";
 
 interface OwnProps {
@@ -59,7 +60,7 @@ const Pushpin: React.FC<PushpinProps> = ({
   ...options
 }) => {
   const map = useContext(MapContext);
-  const { layer } = useContext(LayerContext);
+  const { layer, type } = useContext(LayerContext);
 
   useEffect(() => {
     const _loc = new window.Microsoft.Maps.Location(latitude, longitude);
@@ -121,19 +122,42 @@ const Pushpin: React.FC<PushpinProps> = ({
       ]
     });
 
-    // Add the pushpin to the layer/map
+    // Add the pushpin to the layer/cluster/map
     if (layer) {
-      layer.add(pin);
+      switch (type) {
+        case "Layer":
+          (layer as SimpleLayerContextType["layer"]).add(pin);
+          break;
+        case "ClusterLayer":
+          //
+          const cl = layer as ClusterLayerContextType["layer"];
+          const currentPushpins = cl.getPushpins();
+          currentPushpins.push(pin);
+          cl.setPushpins(currentPushpins.slice(0));
+          break;
+      }
     } else {
-      try {
-        // on late mount?
-        map.entities.push(pin);
-      } catch {}
+      map.entities.push(pin);
     }
+
     return () => {
-      // Remove the pushpin from the layer/map
+      // Remove the pushpin from the layer/cluster/map
       if (layer) {
-        layer.remove(pin);
+        switch (type) {
+          case "Layer":
+            (layer as SimpleLayerContextType["layer"]).remove(pin);
+            break;
+          case "ClusterLayer":
+            const cl = layer as ClusterLayerContextType["layer"];
+
+            const currentPushpins = cl.getPushpins();
+            currentPushpins.splice(
+              currentPushpins.findIndex((value) => value === pin),
+              1
+            );
+            cl.setPushpins(currentPushpins);
+            break;
+        }
       } else {
         map.entities.remove(pin);
       }

@@ -5,6 +5,8 @@ import MarkerPathAnimationManager from "../helpers/MarkerPathAnimationManager";
 import { EntityDescriptor, LayerEventHandler } from "../index";
 import addHandlers from "../helpers/addHandlers";
 
+import { ClusterLayerContextType } from "./ClusterLayer";
+
 interface OwnProps {
   id?: string;
   animationDuration?: number;
@@ -28,15 +30,20 @@ interface OwnProps {
   children: React.ReactNode;
 }
 
-interface LayerContextType {
+export interface SimpleLayerContextType {
+  type: "Layer";
   layer: Microsoft.Maps.Layer;
-  entities: EntityDescriptor[];
 
+  entities: EntityDescriptor[];
   currentAnimatingLevel?: number;
 }
 
+type LayerContextType = SimpleLayerContextType | ClusterLayerContextType;
+
 export const LayerContext = React.createContext<LayerContextType>({
+  type: "Layer",
   layer: (null as unknown) as Microsoft.Maps.Layer,
+
   entities: []
 });
 
@@ -62,8 +69,9 @@ const Layer: React.FC<LayerProps> = ({
   children
 }) => {
   const map = useContext(MapContext);
-  const context: LayerContextType = useMemo(
+  const context: SimpleLayerContextType = useMemo(
     () => ({
+      type: "Layer",
       layer: new window.Microsoft.Maps.Layer(id),
       entities: []
     }),

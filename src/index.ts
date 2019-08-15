@@ -50,6 +50,7 @@ import ReactBingMap, { ReactBingMapProps } from "./ReactBingMap";
 import Pushpin, { PushpinProps } from "./components/Pushpin";
 import Polyline, { PolylineProps } from "./components/Polyline";
 import Layer, { LayerProps } from "./components/Layer";
+import ClusterLayer, { ClusterLayerProps } from "./components/ClusterLayer";
 import Infobox, { InfoboxProps } from "./components/Infobox";
 
 export {
@@ -61,6 +62,8 @@ export {
   PolylineProps,
   Layer,
   LayerProps,
+  ClusterLayer,
+  ClusterLayerProps,
   Infobox,
   InfoboxProps
 };
