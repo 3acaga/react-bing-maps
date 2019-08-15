@@ -166,39 +166,35 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
         ]
       });
 
-      map.awaitInit = new Promise((resolve, reject) => {
+      map.awaitInit = new Promise((resolve) => {
         ////////////////////////////////////////////////////////////////////////////////////////////
-        setTimeout(() => {
-          (map as any)._mapLoaded._handlers.push(() => {
-            const mapDiv = rootElement.current!.querySelector(".MicrosoftMap");
+        (map as any)._mapLoaded._handlers.push(() => {
+          const mapDiv = rootElement.current!.querySelector(".MicrosoftMap");
 
-            if (mapDiv) {
-              Object.entries(mapDiv).forEach(([key, value]) => {
-                if (key.startsWith("jsEvent")) {
-                  const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+          if (mapDiv) {
+            Object.entries(mapDiv).forEach(([key, value]) => {
+              if (key.startsWith("jsEvent")) {
+                const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
 
-                  mapDiv.removeEventListener(event, value);
-                  mapDiv.addEventListener(
-                    event,
-                    (e: Event & { _IGNORE?: boolean }) => {
-                      if (!e._IGNORE) {
-                        value(e);
-                      }
+                mapDiv.removeEventListener(event, value);
+                mapDiv.addEventListener(
+                  event,
+                  (e: Event & { _IGNORE?: boolean }) => {
+                    if (!e._IGNORE) {
+                      value(e);
                     }
-                  );
-                }
-              });
+                  }
+                );
+              }
+            });
 
-              setMap(map);
-              resolve(map);
-              delete window.__initBingmaps__;
-              // when everything ready
-              onMapInit && onMapInit(map);
-            } else {
-              reject();
-            }
-          });
-        }, 0);
+            // when everything ready
+            delete window.__initBingmaps__;
+            setMap(map);
+            resolve(map);
+            onMapInit && onMapInit(map);
+          }
+        });
         ////////////////////////////////////////////////////////////////////////////////////////////
       });
     };
