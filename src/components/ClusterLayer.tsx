@@ -4,10 +4,7 @@ import { MapContext } from "../ReactBingMap";
 import { LayerEventHandler } from "../index";
 import addHandlers from "../helpers/addHandlers";
 
-import { LayerContext } from "./Layer";
-
 export interface ClusterLayerContextType {
-  type: "ClusterLayer";
   layer: Microsoft.Maps.ClusterLayer;
 }
 
@@ -37,6 +34,12 @@ type ClusterLayerProps = Omit<
 > &
   OwnProps;
 
+export const ClusterLayerContext = React.createContext<ClusterLayerContextType>(
+  {
+    layer: (null as unknown) as Microsoft.Maps.ClusterLayer
+  }
+);
+
 const ClusterLayer: React.FC<ClusterLayerProps> = ({
   onClick,
   onDoubleClick,
@@ -60,14 +63,16 @@ const ClusterLayer: React.FC<ClusterLayerProps> = ({
     (null as unknown) as ClusterLayerContextType
   );
 
+  if (context) {
+    context.layer.setOptions(options);
+  }
+
   useEffect(() => {
     let clusterLayer: Microsoft.Maps.ClusterLayer;
 
     const initializeClusterLayer = () => {
       //Create a ClusterLayer and add it to the map.
-      clusterLayer = new Microsoft.Maps.ClusterLayer([], {
-        ...options
-      });
+      clusterLayer = new Microsoft.Maps.ClusterLayer([], options);
       map.layers.insert(clusterLayer);
 
       addHandlers({
@@ -113,7 +118,6 @@ const ClusterLayer: React.FC<ClusterLayerProps> = ({
       });
 
       setContext({
-        type: "ClusterLayer",
         layer: clusterLayer
       });
     };
@@ -127,14 +131,15 @@ const ClusterLayer: React.FC<ClusterLayerProps> = ({
     }
 
     return () => {
+      clusterLayer.clear();
       map.layers.remove(clusterLayer);
     };
   }, []);
 
   return (
-    <LayerContext.Provider value={context}>
+    <ClusterLayerContext.Provider value={context}>
       {context && children}
-    </LayerContext.Provider>
+    </ClusterLayerContext.Provider>
   );
 };
 

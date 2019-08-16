@@ -1,11 +1,9 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 
 import { MapContext } from "../ReactBingMap";
 import MarkerPathAnimationManager from "../helpers/MarkerPathAnimationManager";
 import { EntityDescriptor, LayerEventHandler } from "../index";
 import addHandlers from "../helpers/addHandlers";
-
-import { ClusterLayerContextType } from "./ClusterLayer";
 
 interface OwnProps {
   id?: string;
@@ -30,20 +28,15 @@ interface OwnProps {
   children: React.ReactNode;
 }
 
-export interface SimpleLayerContextType {
-  type: "Layer";
+export interface LayerContextType {
   layer: Microsoft.Maps.Layer;
 
   entities: EntityDescriptor[];
   currentAnimatingLevel?: number;
 }
 
-type LayerContextType = SimpleLayerContextType | ClusterLayerContextType;
-
 export const LayerContext = React.createContext<LayerContextType>({
-  type: "Layer",
   layer: (null as unknown) as Microsoft.Maps.Layer,
-
   entities: []
 });
 
@@ -69,18 +62,16 @@ const Layer: React.FC<LayerProps> = ({
   children
 }) => {
   const map = useContext(MapContext);
-  const context: SimpleLayerContextType = useMemo(
-    () => ({
-      type: "Layer",
-      layer: new window.Microsoft.Maps.Layer(id),
-      entities: []
-    }),
-    [id]
-  );
+  const {
+    current: context,
+    current: { entities }
+  } = useRef<LayerContextType>({
+    layer: new window.Microsoft.Maps.Layer(id),
+    entities: []
+  });
 
   useEffect(() => {
-    const { layer, entities } = context;
-    let PAM: MarkerPathAnimationManager;
+    const { layer } = context;
 
     addHandlers({
       target: layer,
@@ -122,18 +113,25 @@ const Layer: React.FC<LayerProps> = ({
 
     map.layers.insert(layer);
     layer.setVisible(true);
+  }, []);
 
+  useEffect(() => {
+    const { entities } = context;
+    let PAM: MarkerPathAnimationManager;
+
+    // debugger;
+    console.log("Entities effect", entities);
     if (entities.length) {
       PAM = new MarkerPathAnimationManager(entities, animationDuration);
       PAM.start();
     }
 
     return () => {
-      if (entities.length) {
+      if (PAM) {
         PAM.stop();
       }
     };
-  }, []);
+  }, [entities.length]);
 
   return (
     <LayerContext.Provider value={context}>{children}</LayerContext.Provider>

@@ -3,8 +3,8 @@ import React, { useContext, useEffect } from "react";
 import { MapContext } from "../ReactBingMap";
 import addHandlers from "../helpers/addHandlers";
 
-import { LayerContext, SimpleLayerContextType } from "./Layer";
-import { ClusterLayerContextType } from "./ClusterLayer";
+import { LayerContext } from "./Layer";
+import { ClusterLayerContext } from "./ClusterLayer";
 import { LatLng, Point, PushpinEventHandler } from "../index";
 
 interface OwnProps {
@@ -60,7 +60,8 @@ const Pushpin: React.FC<PushpinProps> = ({
   ...options
 }) => {
   const map = useContext(MapContext);
-  const { layer, type } = useContext(LayerContext);
+  const { layer } = useContext(LayerContext);
+  const { layer: clusterLayer } = useContext(ClusterLayerContext);
 
   useEffect(() => {
     const _loc = new window.Microsoft.Maps.Location(latitude, longitude);
@@ -122,42 +123,28 @@ const Pushpin: React.FC<PushpinProps> = ({
       ]
     });
 
-    // Add the pushpin to the layer/cluster/map
-    if (layer) {
-      switch (type) {
-        case "Layer":
-          (layer as SimpleLayerContextType["layer"]).add(pin);
-          break;
-        case "ClusterLayer":
-          //
-          const cl = layer as ClusterLayerContextType["layer"];
-          const currentPushpins = cl.getPushpins();
-          currentPushpins.push(pin);
-          cl.setPushpins(currentPushpins.slice(0));
-          break;
-      }
+    // Add the pushpin to the cluster/layer/map
+    if (clusterLayer) {
+      const currentPushpins = clusterLayer.getPushpins();
+      currentPushpins.push(pin);
+      clusterLayer.setPushpins(currentPushpins.slice(0));
+    } else if (layer) {
+      layer.add(pin);
     } else {
       map.entities.push(pin);
     }
 
     return () => {
-      // Remove the pushpin from the layer/cluster/map
-      if (layer) {
-        switch (type) {
-          case "Layer":
-            (layer as SimpleLayerContextType["layer"]).remove(pin);
-            break;
-          case "ClusterLayer":
-            const cl = layer as ClusterLayerContextType["layer"];
-
-            const currentPushpins = cl.getPushpins();
-            currentPushpins.splice(
-              currentPushpins.findIndex((value) => value === pin),
-              1
-            );
-            cl.setPushpins(currentPushpins);
-            break;
-        }
+      // Remove the pushpin from the cluster/layer/map
+      if (clusterLayer) {
+        const currentPushpins = clusterLayer.getPushpins();
+        currentPushpins.splice(
+          currentPushpins.findIndex((value) => value === pin),
+          1
+        );
+        clusterLayer.setPushpins(currentPushpins);
+      } else if (layer) {
+        layer.remove(pin);
       } else {
         map.entities.remove(pin);
       }
