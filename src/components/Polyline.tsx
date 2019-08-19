@@ -36,6 +36,7 @@ const Polyline: React.FC<PolylineProps> = ({
 
     const polyline = new window.Microsoft.Maps.Polyline(linePath, options);
     let entityDescriptor: EntityDescriptor;
+    let disposeMovingMarker: () => void;
 
     // Add the pushpin to the map
     if (layer) {
@@ -55,7 +56,7 @@ const Polyline: React.FC<PolylineProps> = ({
           type: "polyline",
           length: lineLength,
           startAnimation: (duration: number) => {
-            return new Promise(async (resolve) => {
+            const awaitEnd = new Promise(async (resolve, reject) => {
               // show marker
               movingMarker.setLocation(linePath[0]);
               movingMarker.setOptions({ visible: true });
@@ -63,7 +64,9 @@ const Polyline: React.FC<PolylineProps> = ({
 
               // move marker
               for (let i = 0; i < Math.ceil(linePath.length); i += speed) {
-                await new Promise((resolve) => {
+                await new Promise((resolve, reject) => {
+                  disposeMovingMarker = reject;
+
                   setTimeout(
                     requestAnimationFrame,
                     (speed * duration) / Math.floor(linePath.length),
@@ -72,22 +75,27 @@ const Polyline: React.FC<PolylineProps> = ({
                       resolve();
                     }
                   );
-                });
+                }).catch((e) => reject(e));
               }
 
-              // hide marker
-              setTimeout(() => {
-                movingMarker.setOptions({
-                  visible: false
-                });
-                layer.remove(movingMarker);
-                resolve();
-              }, 500);
+              await new Promise((_resolve, _reject) => {
+                disposeMovingMarker = _reject;
+                setTimeout(resolve, 500);
+              }).catch((e) => reject(e));
+            }).catch(() => {});
+
+            awaitEnd.finally(() => {
+              movingMarker.setOptions({
+                visible: false
+              });
+              layer.remove(movingMarker);
             });
+
+            return awaitEnd;
           }
         };
 
-        entities.push(entityDescriptor);
+        entities.add(entityDescriptor);
       }
     } else {
       try {
@@ -100,7 +108,8 @@ const Polyline: React.FC<PolylineProps> = ({
       if (layer) {
         layer.remove(polyline);
         if (withMovingMarker) {
-          entities.splice(entities.findIndex((e) => entityDescriptor === e), 1);
+          entities.remove(entityDescriptor);
+          disposeMovingMarker && disposeMovingMarker();
         }
       } else {
         map.entities.remove(polyline);

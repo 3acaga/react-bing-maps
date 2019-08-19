@@ -1,8 +1,12 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 
 import { MapContext } from "../ReactBingMap";
 import MarkerPathAnimationManager from "../helpers/MarkerPathAnimationManager";
-import { EntityDescriptor, LayerEventHandler } from "../index";
+import {
+  EntityDescriptor,
+  EntityAggregator,
+  LayerEventHandler
+} from "../index";
 import addHandlers from "../helpers/addHandlers";
 
 interface OwnProps {
@@ -31,13 +35,13 @@ interface OwnProps {
 export interface LayerContextType {
   layer: Microsoft.Maps.Layer;
 
-  entities: EntityDescriptor[];
+  entities: EntityAggregator;
   currentAnimatingLevel?: number;
 }
 
 export const LayerContext = React.createContext<LayerContextType>({
   layer: (null as unknown) as Microsoft.Maps.Layer,
-  entities: []
+  entities: ([] as unknown) as LayerContextType["entities"]
 });
 
 type LayerProps = OwnProps;
@@ -62,13 +66,35 @@ const Layer: React.FC<LayerProps> = ({
   children
 }) => {
   const map = useContext(MapContext);
-  const {
-    current: context,
-    current: { entities }
-  } = useRef<LayerContextType>({
-    layer: new window.Microsoft.Maps.Layer(id),
-    entities: []
-  });
+
+  const [entities, setEntities] = useState<Readonly<EntityDescriptor[]>>([]);
+
+  const context = useMemo<LayerContextType>(() => {
+    let newEntities = ([
+      ...entities
+    ] as unknown) as LayerContextType["entities"];
+
+    Object.defineProperty(newEntities, "add", {
+      value: function(e: EntityDescriptor) {
+        newEntities.push(e);
+        setEntities(newEntities);
+      },
+      enumerable: false
+    });
+
+    Object.defineProperty(newEntities, "remove", {
+      value: function(e: EntityDescriptor) {
+        newEntities.splice(newEntities.findIndex((entity) => entity === e), 1);
+        setEntities(newEntities);
+      },
+      enumerable: false
+    });
+
+    return {
+      layer: new window.Microsoft.Maps.Layer(id),
+      entities: newEntities
+    };
+  }, [entities]);
 
   useEffect(() => {
     const { layer } = context;
@@ -116,11 +142,8 @@ const Layer: React.FC<LayerProps> = ({
   }, []);
 
   useEffect(() => {
-    const { entities } = context;
     let PAM: MarkerPathAnimationManager;
 
-    // debugger;
-    console.log("Entities effect", entities);
     if (entities.length) {
       PAM = new MarkerPathAnimationManager(entities, animationDuration);
       PAM.start();
@@ -131,7 +154,7 @@ const Layer: React.FC<LayerProps> = ({
         PAM.stop();
       }
     };
-  }, [entities.length]);
+  }, [entities]);
 
   return (
     <LayerContext.Provider value={context}>{children}</LayerContext.Provider>

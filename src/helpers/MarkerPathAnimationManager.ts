@@ -5,11 +5,16 @@ class MarkerPathAnimationManager {
   private lvlMin: number;
   private lvlMax: number;
 
-  private entities: EntityDescriptor[];
+  private entities: Readonly<EntityDescriptor[]>;
   private timeParts: { [T: string]: number };
 
-  constructor(entities: EntityDescriptor[], animationDuration: number) {
-    const { lvlMin, lvlMax, lengths } = entities.reduce<{
+  constructor(
+    entities: EntityDescriptor[] | Readonly<EntityDescriptor[]>,
+    animationDuration: number
+  ) {
+    this.entities = entities as Readonly<EntityDescriptor[]>;
+
+    const { lvlMin, lvlMax, lengths } = this.entities.reduce<{
       lvlMin: number;
       lvlMax: number;
       lengths: { [T: number]: number };
@@ -54,14 +59,13 @@ class MarkerPathAnimationManager {
       return acc;
     }, {});
 
-    this.entities = entities;
     this.lvlMin = lvlMin;
     this.lvlMax = lvlMax;
     this.timeParts = timeParts;
   }
 
   private animate = (level: number) => {
-    return this.entities.reduce<Promise<any>[]>((acc, ent) => {
+    return this.entities.reduce<Promise<unknown>[]>((acc, ent) => {
       if (ent.level === level && ent.startAnimation) {
         acc.push(ent.startAnimation(this.timeParts[level]));
       }

@@ -15,8 +15,15 @@ export interface EntityDescriptor {
   startAnimation: (duration: number) => Promise<unknown>;
 }
 
-// TODO type it
-export type LayerEventHandler = (e: unknown, map: Microsoft.Maps.Map) => void;
+export type EntityAggregator = EntityDescriptor[] & {
+  add: (e: EntityDescriptor) => void;
+  remove: (e: EntityDescriptor) => void;
+};
+
+export type LayerEventHandler = (
+  e: Microsoft.Maps.IMouseEventArgs,
+  map: Microsoft.Maps.Map
+) => void;
 
 export type PushpinEventHandler = (
   e:
@@ -40,7 +47,9 @@ export type MapEventHandler = (
   map: Microsoft.Maps.Map
 ) => void;
 
-export interface HandlerDescriptor<T = any> {
+export interface HandlerDescriptor<
+  T = (e: unknown, map: Microsoft.Maps.Map) => void
+> {
   eventName: string;
   handler: T;
   throttleMs?: number;
