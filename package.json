@@ -1,6 +1,6 @@
 {
   "name": "@3acaga/react-bing-maps",
-  "version": "0.0.0-beta.6",
+  "version": "0.0.0-beta.7",
   "description": "React binding attempt for bing-maps",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,8 +38,8 @@
     "@types/jsdom": "^12.2.4",
     "@types/uuid": "^3.4.5",
     "typescript": "^3.5.3",
-    "@typescript-eslint/eslint-plugin": "^1.12.0",
-    "@typescript-eslint/parser": "^1.12.0",
+    "@typescript-eslint/eslint-plugin": "^2.0.0",
+    "@typescript-eslint/parser": "^2.0.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.3.0",
     "eslint-config-standard": "^12.0.0",

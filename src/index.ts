@@ -48,10 +48,10 @@ export type MapEventHandler = (
 ) => void;
 
 export interface HandlerDescriptor<
-  T = (e: unknown, map: Microsoft.Maps.Map) => void
+  T = (e: any, map: Microsoft.Maps.Map) => void
 > {
   eventName: string;
-  handler: T;
+  handler?: T;
   throttleMs?: number;
 }
 

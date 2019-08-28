@@ -99,6 +99,7 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
         options
       ) as CustomMap;
 
+      // TODO make effect to reassign handler
       addHandlers({
         target: map,
         map,
@@ -168,35 +169,38 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
 
       map.awaitInit = new Promise((resolve) => {
         ////////////////////////////////////////////////////////////////////////////////////////////
-        (map as any)._mapLoaded._handlers.push(() => {
-          const mapDiv = rootElement.current!.querySelector(".MicrosoftMap");
+        (map as any)._mapLoaded._handlers.push(function() {
+          // Do not instantiate map on immediately unmounted components
+          if (rootElement.current) {
+            const mapDiv = rootElement.current.querySelector(".MicrosoftMap");
 
-          if (mapDiv) {
-            Object.entries(mapDiv).forEach(([key, value]) => {
-              if (key.startsWith("jsEvent")) {
-                const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+            if (mapDiv) {
+              Object.entries(mapDiv).forEach(([key, value]) => {
+                if (key.startsWith("jsEvent")) {
+                  const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
 
-                mapDiv.removeEventListener(event, value);
-                mapDiv.addEventListener(
-                  event,
-                  (e: Event & { _IGNORE?: boolean }) => {
-                    if (!e._IGNORE) {
-                      value(e);
+                  mapDiv.removeEventListener(event, value);
+                  mapDiv.addEventListener(
+                    event,
+                    (e: Event & { _IGNORE?: boolean }) => {
+                      if (!e._IGNORE) {
+                        value(e);
+                      }
                     }
-                  }
-                );
-              }
-            });
+                  );
+                }
+              });
 
-            // when everything ready
-            delete window.__initBingmaps__;
-            setMap(map);
-            resolve(map);
-            onMapInit && onMapInit(map);
+              // when everything ready
+              delete window.__initBingmaps__;
+              setMap(map);
+              resolve(map);
+              onMapInit && onMapInit(map);
+            }
           }
         });
-        ////////////////////////////////////////////////////////////////////////////////////////////
       });
+      ////////////////////////////////////////////////////////////////////////////////////////////
     };
 
     if (!window.Microsoft) {

@@ -28,7 +28,7 @@ type InfoboxProps = Omit<
 > &
   OwnProps;
 
-const dummy = function(this: Event) {};
+const dummy = () => {};
 
 const Infobox: React.FC<InfoboxProps> = ({
   location: { latitude, longitude },

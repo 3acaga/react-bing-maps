@@ -18,9 +18,8 @@ const addHandlers = ({
   handlers: HandlerDescriptor[];
 }) => {
   // Add handlers to pushpin
-  handlers
-    .filter(({ handler }) => !!handler)
-    .forEach(({ eventName, handler, throttleMs }) => {
+  handlers.forEach(({ eventName, handler, throttleMs }) => {
+    if (handler) {
       const _handler = (e: unknown) => {
         handler(e, map);
       };
@@ -35,7 +34,8 @@ const addHandlers = ({
       } else {
         window.Microsoft.Maps.Events.addHandler(target, eventName, _handler);
       }
-    });
+    }
+  });
 };
 
 export default addHandlers;
