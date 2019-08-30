@@ -45,6 +45,14 @@ const MapContext = React.createContext<CustomMap>(
   (undefined as unknown) as CustomMap
 );
 
+enum SCRIPTS_STATUSES {
+  NOT_LOADING,
+  LOADING,
+  READY
+}
+
+let SCRIPTS_CURRENT_STATUS = SCRIPTS_STATUSES.NOT_LOADING;
+
 type ReactBingMapProps = Omit<Microsoft.Maps.IMapLoadOptions, keyof OwnProps> &
   OwnProps;
 
@@ -168,57 +176,70 @@ const ReactBingMap: React.FC<ReactBingMapProps> = ({
       });
 
       map.awaitInit = new Promise((resolve) => {
-        ////////////////////////////////////////////////////////////////////////////////////////////
         (map as any)._mapLoaded._handlers.push(function() {
-          // Do not instantiate map on immediately unmounted components
-          if (rootElement.current) {
-            const mapDiv = rootElement.current.querySelector(".MicrosoftMap");
+          const mapDiv = rootElement.current!.querySelector(".MicrosoftMap");
 
-            if (mapDiv) {
-              Object.entries(mapDiv).forEach(([key, value]) => {
-                if (key.startsWith("jsEvent")) {
-                  const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
+          if (mapDiv) {
+            Object.entries(mapDiv).forEach(([key, value]) => {
+              if (key.startsWith("jsEvent")) {
+                const event = key.replace(/jsEvent([a-zA-Z]+)[^w]+/, "$1");
 
-                  mapDiv.removeEventListener(event, value);
-                  mapDiv.addEventListener(
-                    event,
-                    (e: Event & { _IGNORE?: boolean }) => {
-                      if (!e._IGNORE) {
-                        value(e);
-                      }
+                mapDiv.removeEventListener(event, value);
+                mapDiv.addEventListener(
+                  event,
+                  (e: Event & { _IGNORE?: boolean }) => {
+                    if (!e._IGNORE) {
+                      value(e);
                     }
-                  );
-                }
-              });
+                  }
+                );
+              }
+            });
 
-              // when everything ready
-              delete window.__initBingmaps__;
-              setMap(map);
-              resolve(map);
-              onMapInit && onMapInit(map);
-            }
+            // when everything ready
+            onMapInit && onMapInit(map);
+            setMap(map);
+            resolve(map);
           }
         });
       });
-      ////////////////////////////////////////////////////////////////////////////////////////////
+
+      delete window.__initBingmaps__;
     };
 
-    if (!window.Microsoft) {
-      if (!window.__initBingmaps__) {
+    // Scripts loading flow
+    switch (SCRIPTS_CURRENT_STATUS) {
+      case SCRIPTS_STATUSES.NOT_LOADING:
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.async = true;
         script.defer = true;
         script.src = `https://www.bing.com/api/maps/mapcontrol?callback=__initBingmaps__&key=${apiKey}`;
-        window.__initBingmaps__ = init;
+        window.__initBingmaps__ = () => {
+          SCRIPTS_CURRENT_STATUS = SCRIPTS_STATUSES.READY;
+          init();
+        };
 
         document.body.appendChild(script);
-      } else {
-        window.__initBingmaps__ = init;
-      }
-    } else {
-      init();
+
+        SCRIPTS_CURRENT_STATUS = SCRIPTS_STATUSES.LOADING;
+        break;
+
+      case SCRIPTS_STATUSES.LOADING:
+        window.__initBingmaps__ = () => {
+          SCRIPTS_CURRENT_STATUS = SCRIPTS_STATUSES.READY;
+          init();
+        };
+        break;
+
+      case SCRIPTS_STATUSES.READY:
+        init();
+        break;
     }
+
+    return () => {
+      delete window.__initBingmaps__;
+    };
   }, []);
 
   return (
