@@ -4,7 +4,11 @@ import { range } from "d3-array";
 
 import { LatLng } from "../index";
 
-export function generatePathPoints(curvePoints: LatLng[], curved?: boolean) {
+export function generatePathPoints(
+  curvePoints: LatLng[],
+  curved?: boolean,
+  pathPointsCount?: number
+) {
   const _svg = create("svg");
   const _path = _svg.append("path");
 
@@ -50,7 +54,9 @@ export function generatePathPoints(curvePoints: LatLng[], curved?: boolean) {
   _path.attr("d", lineGenerator(curvePoints) as string);
   const svgLine = _path.node()!;
   const lineLength = svgLine.getTotalLength();
-  const numPoints = curved
+  const numPoints = pathPointsCount
+    ? pathPointsCount
+    : curved
     ? Math.ceil(lineLength * 2.5) < 15
       ? 15
       : Math.ceil(lineLength * 2.5)

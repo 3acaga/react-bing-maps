@@ -7,6 +7,7 @@ import { EntityDescriptor, LatLng } from "../index";
 
 interface OwnProps {
   path: LatLng[];
+  pathPointsCount?: number;
 
   withMovingMarker?: boolean;
   curved?: boolean;
@@ -20,6 +21,7 @@ const Polyline: React.FC<PolylineProps> = ({
   curved = false,
   level = 0,
   path,
+  pathPointsCount,
   withMovingMarker,
   movingMarkerConfig,
   ...options
@@ -30,7 +32,7 @@ const Polyline: React.FC<PolylineProps> = ({
   useEffect(() => {
     // TODO use spatial math cardinal curve
     // https://www.bing.com/api/maps/sdkrelease/mapcontrol/isdk/getcardinalspline#TS
-    const points = generatePathPoints(path, curved);
+    const points = generatePathPoints(path, curved, pathPointsCount);
 
     const { path: linePath, length: lineLength } = points;
 
